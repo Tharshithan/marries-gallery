@@ -1,0 +1,1409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MARRIE'S Gallery - Buy Contemporary Art Online</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <script src="https://js.stripe.com/v3/"></script>
+    <style>
+        :root {
+            --primary: #ff6b9d;
+            --secondary: #c44569;
+            --accent: #feca57;
+            --blue: #48dbfb;
+            --purple: #a29bfe;
+            --green: #00d2d3;
+            --orange: #ff9ff3;
+            --text: #2c2c2c;
+            --light-text: #666;
+            --success: #10b981;
+            --error: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            color: var(--text);
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Animated Background */
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Hero Section */
+        .hero {
+            height: 100vh;
+            background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: movePattern 20s linear infinite;
+        }
+
+        @keyframes movePattern {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
+
+        .hero-content {
+            text-align: center;
+            z-index: 2;
+            animation: fadeInUp 1s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .hero h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 6rem;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 1rem;
+            letter-spacing: 3px;
+            text-shadow: 3px 3px 10px rgba(0,0,0,0.3);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .hero .subtitle {
+            font-size: 1.5rem;
+            color: white;
+            letter-spacing: 5px;
+            text-transform: uppercase;
+            font-weight: 600;
+            animation: fadeInUp 1s ease-out 0.3s both;
+            text-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+        }
+
+        .scroll-indicator {
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translate(-50%, 0); }
+            50% { transform: translate(-50%, 10px); }
+        }
+
+        .scroll-indicator::after {
+            content: '↓';
+            color: white;
+            font-size: 3rem;
+            text-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+        }
+
+        /* Navigation */
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: linear-gradient(135deg, rgba(255,107,157,0.95) 0%, rgba(196,69,105,0.95) 100%);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            padding: 1.5rem 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transform: translateY(-100%);
+            animation: slideDown 0.5s ease-out 1.5s forwards;
+            box-shadow: 0 5px 20px rgba(255,107,157,0.3);
+        }
+
+        @keyframes slideDown {
+            to { transform: translateY(0); }
+        }
+
+        .logo {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            color: white;
+            font-weight: 700;
+            text-shadow: 2px 2px 5px rgba(0,0,0,0.2);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2.5rem;
+            list-style: none;
+            align-items: center;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s;
+            position: relative;
+            font-weight: 600;
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 3px;
+            background: var(--accent);
+            transition: width 0.3s;
+            border-radius: 2px;
+        }
+
+        .nav-links a:hover {
+            color: var(--accent);
+            transform: translateY(-2px);
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        .cart-btn {
+            background: linear-gradient(135deg, var(--accent) 0%, var(--orange) 100%);
+            color: var(--text);
+            padding: 0.8rem 1.8rem;
+            border: none;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+            position: relative;
+            border-radius: 50px;
+            font-weight: 700;
+            box-shadow: 0 5px 15px rgba(254,202,87,0.4);
+        }
+
+        .cart-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(254,202,87,0.6);
+        }
+
+        .cart-count {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: var(--error);
+            color: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 700;
+            box-shadow: 0 3px 10px rgba(239,68,68,0.5);
+        }
+
+        /* Featured Section */
+        .featured {
+            padding: 8rem 5%;
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 50%, #ffecd2 100%);
+            position: relative;
+        }
+
+        .featured::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg width="60" height="60" xmlns="http://www.w3.org/2000/svg"><circle cx="30" cy="30" r="2" fill="rgba(255,107,157,0.1)"/></svg>');
+            pointer-events: none;
+        }
+
+        .section-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 4rem;
+            text-align: center;
+            margin-bottom: 1rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 50%, var(--purple) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: shimmer 3s ease-in-out infinite;
+        }
+
+        @keyframes shimmer {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .section-subtitle {
+            text-align: center;
+            color: var(--secondary);
+            margin-bottom: 4rem;
+            font-size: 1.2rem;
+            letter-spacing: 2px;
+            font-weight: 600;
+        }
+
+        /* Gallery Grid */
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 3rem;
+            margin-bottom: 5rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .art-card {
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 15px 40px rgba(255,107,157,0.2);
+            transition: transform 0.4s ease, box-shadow 0.4s ease;
+            cursor: pointer;
+            border: 3px solid transparent;
+        }
+
+        .art-card:hover {
+            transform: translateY(-15px) rotate(-2deg);
+            box-shadow: 0 25px 60px rgba(255,107,157,0.4);
+            border-color: var(--primary);
+        }
+
+        .art-image {
+            width: 100%;
+            height: 400px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 5rem;
+            text-shadow: 3px 3px 10px rgba(0,0,0,0.3);
+        }
+
+        .art-card:nth-child(1) .art-image {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .art-card:nth-child(2) .art-image {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .art-card:nth-child(3) .art-image {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        }
+
+        .art-card:nth-child(4) .art-image {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+        }
+
+        .art-card:nth-child(5) .art-image {
+            background: linear-gradient(135deg, #30cfd0 0%, #330867 100%);
+        }
+
+        .art-card:nth-child(6) .art-image {
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+        }
+
+        .art-card:nth-child(7) .art-image {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+        }
+
+        .art-card:nth-child(8) .art-image {
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+        }
+
+        .art-image::after {
+            content: '✨ View Details';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 1.3rem;
+            opacity: 0;
+            transition: opacity 0.3s;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            font-weight: 700;
+            text-shadow: 2px 2px 10px rgba(0,0,0,0.5);
+        }
+
+        .art-card:hover .art-image::after {
+            opacity: 1;
+        }
+
+        .art-info {
+            padding: 2rem;
+            background: white;
+        }
+
+        .art-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .artist-name {
+            color: var(--light-text);
+            font-size: 1rem;
+            margin-bottom: 1rem;
+            font-style: italic;
+            font-weight: 500;
+        }
+
+        .art-description {
+            color: var(--light-text);
+            font-size: 0.95rem;
+            margin-bottom: 1.5rem;
+            line-height: 1.8;
+        }
+
+        .price-and-btn {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .price {
+            font-size: 1.8rem;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 700;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            padding: 1rem 2.5rem;
+            border: none;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+            border-radius: 50px;
+            font-weight: 700;
+            box-shadow: 0 5px 15px rgba(255,107,157,0.4);
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(255,107,157,0.6);
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #ffffff 0%, #fff5f8 100%);
+            padding: 3rem;
+            border-radius: 20px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            animation: slideUp 0.3s;
+            box-shadow: 0 20px 60px rgba(255,107,157,0.4);
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            font-size: 2.5rem;
+            cursor: pointer;
+            color: var(--primary);
+            transition: all 0.3s;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: white;
+        }
+
+        .close-modal:hover {
+            color: var(--error);
+            transform: rotate(90deg);
+            background: #ffe5ec;
+        }
+
+        .cart-items {
+            margin: 2rem 0;
+        }
+
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem;
+            border-bottom: 2px solid #ffe5ec;
+            background: white;
+            margin-bottom: 1rem;
+            border-radius: 10px;
+        }
+
+        .cart-item-info h4 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.4rem;
+            margin-bottom: 0.3rem;
+            color: var(--primary);
+        }
+
+        .cart-item-info p {
+            color: var(--light-text);
+            font-size: 0.95rem;
+        }
+
+        .cart-item-price {
+            font-size: 1.3rem;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 700;
+        }
+
+        .remove-item {
+            background: var(--error);
+            color: white;
+            border: none;
+            padding: 0.6rem 1.2rem;
+            cursor: pointer;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-left: 1rem;
+            transition: all 0.3s;
+            border-radius: 25px;
+            font-weight: 700;
+        }
+
+        .remove-item:hover {
+            background: #dc2626;
+            transform: scale(1.05);
+        }
+
+        .cart-total {
+            text-align: right;
+            padding: 2rem 0;
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            border-top: 3px solid var(--primary);
+            margin-top: 1rem;
+        }
+
+        .empty-cart {
+            text-align: center;
+            padding: 4rem 0;
+            color: var(--light-text);
+            font-size: 1.2rem;
+        }
+
+        .checkout-btn {
+            width: 100%;
+            background: linear-gradient(135deg, var(--success) 0%, #00d2d3 100%);
+            color: white;
+            padding: 1.5rem;
+            border: none;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-size: 1.1rem;
+            transition: all 0.3s;
+            margin-top: 1rem;
+            font-weight: 700;
+            border-radius: 50px;
+            box-shadow: 0 5px 20px rgba(16,185,129,0.4);
+        }
+
+        .checkout-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(16,185,129,0.6);
+        }
+
+        .checkout-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        /* Checkout Form */
+        .checkout-form {
+            margin-top: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid #ffe5ec;
+            background: white;
+            font-family: 'Poppins', sans-serif;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+            border-radius: 10px;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 15px rgba(255,107,157,0.2);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        #card-element {
+            padding: 1rem;
+            border: 2px solid #ffe5ec;
+            border-radius: 10px;
+            background: white;
+        }
+
+        .payment-errors {
+            color: var(--error);
+            margin-top: 1rem;
+            font-size: 0.95rem;
+            font-weight: 600;
+        }
+
+        .success-message {
+            background: linear-gradient(135deg, var(--success) 0%, #00d2d3 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 15px;
+            text-align: center;
+            margin: 2rem 0;
+            box-shadow: 0 10px 30px rgba(16,185,129,0.3);
+        }
+
+        .success-message h3 {
+            margin-bottom: 0.5rem;
+            font-size: 2rem;
+        }
+
+        /* About Section */
+        .about {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 50%, var(--purple) 100%);
+            color: white;
+            padding: 8rem 5%;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .about::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: rotatePattern 30s linear infinite;
+        }
+
+        @keyframes rotatePattern {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .about .section-title {
+            color: white;
+            -webkit-text-fill-color: white;
+            text-shadow: 3px 3px 10px rgba(0,0,0,0.3);
+        }
+
+        .about-content {
+            max-width: 800px;
+            margin: 0 auto;
+            font-size: 1.2rem;
+            line-height: 2;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Contact Section */
+        .contact {
+            padding: 8rem 5%;
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            position: relative;
+        }
+
+        .contact-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 3rem;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(255,107,157,0.2);
+        }
+
+        .contact-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .contact-card {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 15px;
+            text-align: center;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .contact-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(255,107,157,0.4);
+        }
+
+        .contact-card .icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .contact-card h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .contact-card a {
+            color: white;
+            text-decoration: none;
+            font-size: 1.1rem;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: inline-block;
+        }
+
+        .contact-card a:hover {
+            transform: scale(1.1);
+            text-shadow: 2px 2px 10px rgba(0,0,0,0.3);
+        }
+
+        /* Footer */
+        footer {
+            background: linear-gradient(135deg, #2c2c2c 0%, #1a1a1a 100%);
+            color: white;
+            padding: 3rem 5%;
+            text-align: center;
+        }
+
+        .social-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .social-links a {
+            color: white;
+            text-decoration: none;
+            font-size: 2rem;
+            transition: all 0.3s;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            box-shadow: 0 5px 15px rgba(255,107,157,0.3);
+        }
+
+        .social-links a:hover {
+            transform: translateY(-5px) rotate(360deg);
+            box-shadow: 0 10px 25px rgba(255,107,157,0.5);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 3.5rem;
+            }
+
+            .hero .subtitle {
+                font-size: 1rem;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .gallery {
+                grid-template-columns: 1fr;
+            }
+
+            .section-title {
+                font-size: 2.5rem;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .cart-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+
+            .contact-info {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Fun decorative elements */
+        .sparkle {
+            position: fixed;
+            pointer-events: none;
+            animation: sparkleFloat 3s ease-in-out infinite;
+        }
+
+        @keyframes sparkleFloat {
+            0%, 100% { transform: translateY(0) rotate(0deg); opacity: 0; }
+            50% { transform: translateY(-100px) rotate(180deg); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="logo">MARRIE'S Gallery</div>
+        <ul class="nav-links">
+            <li><a href="#featured">Gallery</a></li>
+            <li><a href="#about">About</a></li>
+            <li><a href="#contact">Contact</a></li>
+            <li>
+                <button class="cart-btn" onclick="openCart()">
+                    🛒 Cart
+                    <span class="cart-count" id="cartCount">0</span>
+                </button>
+            </li>
+        </ul>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <h1>MARRIE'S Gallery</h1>
+            <p class="subtitle">Where Art Comes Alive</p>
+        </div>
+        <div class="scroll-indicator"></div>
+    </section>
+
+    <!-- Featured Gallery -->
+    <section class="featured" id="featured">
+        <h2 class="section-title">Featured Collection</h2>
+        <p class="section-subtitle">✨ Discover Extraordinary Masterpieces ✨</p>
+        
+        <div class="gallery" id="gallery">
+            <!-- Art items will be generated by JavaScript -->
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section class="about" id="about">
+        <h2 class="section-title">About MARRIE'S Gallery</h2>
+        <div class="about-content">
+            <p>Welcome to MARRIE'S Gallery, where passion meets creativity! We are dedicated to bringing you the most vibrant and inspiring contemporary art from talented artists around the world.</p>
+            <p style="margin-top: 2rem;">Each piece in our collection is carefully curated to bring joy, color, and inspiration into your life. We believe that art should be accessible, exciting, and transformative.</p>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section class="contact" id="contact">
+        <h2 class="section-title">Get In Touch</h2>
+        <p class="section-subtitle">We'd love to hear from you!</p>
+        
+        <div class="contact-container">
+            <div class="contact-info">
+                <div class="contact-card">
+                    <div class="icon">📞</div>
+                    <h3>Call Us</h3>
+                    <a href="tel:+1234567890">+1 (234) 567-890</a>
+                </div>
+                
+                <div class="contact-card">
+                    <div class="icon">📷</div>
+                    <h3>Instagram</h3>
+                    <a href="https://www.instagram.com/marriesgallery" target="_blank">@marriesgallery</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="social-links">
+            <a href="https://www.instagram.com/marriesgallery" target="_blank" aria-label="Instagram">📷</a>
+            <a href="tel:+1234567890" aria-label="Phone">📞</a>
+            <a href="mailto:info@marriesgallery.com" aria-label="Email">✉️</a>
+        </div>
+        <p>&copy; 2026 MARRIE'S Gallery. All rights reserved.</p>
+        <p style="margin-top: 1rem; font-size: 0.9rem; opacity: 0.8;">
+            Secure payments powered by Stripe 🔒
+        </p>
+    </footer>
+
+    <!-- Cart Modal -->
+    <div class="modal" id="cartModal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeCart()">&times;</span>
+            <h2 class="section-title" style="margin-bottom: 1rem;">Shopping Cart 🛒</h2>
+            
+            <div id="cartContent">
+                <div class="empty-cart">
+                    <p>Your cart is empty</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Checkout Modal -->
+    <div class="modal" id="checkoutModal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeCheckout()">&times;</span>
+            <h2 class="section-title" style="margin-bottom: 1rem;">Checkout 💳</h2>
+            
+            <div id="checkoutContent">
+                <form id="payment-form" class="checkout-form">
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" required>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="firstName">First Name</label>
+                            <input type="text" id="firstName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="lastName">Last Name</label>
+                            <input type="text" id="lastName" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="address">Address</label>
+                        <input type="text" id="address" required>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="city">City</label>
+                            <input type="text" id="city" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="zipCode">ZIP Code</label>
+                            <input type="text" id="zipCode" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="state">State</label>
+                            <input type="text" id="state" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="country">Country</label>
+                            <select id="country" required>
+                                <option value="US">United States</option>
+                                <option value="CA">Canada</option>
+                                <option value="GB">United Kingdom</option>
+                                <option value="AU">Australia</option>
+                                <option value="FR">France</option>
+                                <option value="DE">Germany</option>
+                                <option value="IT">Italy</option>
+                                <option value="ES">Spain</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="card-element">Credit or Debit Card</label>
+                        <div id="card-element"></div>
+                    </div>
+
+                    <div class="payment-errors" id="card-errors" role="alert"></div>
+
+                    <div class="cart-total" id="checkoutTotal"></div>
+
+                    <button type="submit" class="checkout-btn" id="submitPayment">
+                        🎉 Complete Purchase
+                    </button>
+                </form>
+
+                <div id="paymentSuccess" style="display: none;">
+                    <div class="success-message">
+                        <h3>✓ Payment Successful!</h3>
+                        <p>Thank you for your purchase from MARRIE'S Gallery! 🎨</p>
+                        <p style="margin-top: 1rem; font-size: 0.95rem;">Order ID: <span id="orderId"></span></p>
+                    </div>
+                    <button class="checkout-btn" onclick="closeCheckout(); window.location.reload();">
+                        Continue Shopping 🛍️
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Stripe
+        const stripe = Stripe('pk_test_51QcD2jP3dJkLp9p7QoNqbDdlOL0XglLvNnOcI3i0FxGqBBUjRskhfUdLRqsq9K3oqLHxJZgmTVt2wXtZ8cTp29aD00BNwzqk3R');
+        const elements = stripe.elements();
+        const cardElement = elements.create('card', {
+            style: {
+                base: {
+                    fontSize: '16px',
+                    color: '#2c2c2c',
+                    fontFamily: 'Poppins, sans-serif',
+                    '::placeholder': {
+                        color: '#aab7c4',
+                    },
+                },
+                invalid: {
+                    color: '#ef4444',
+                },
+            },
+        });
+
+        // Art pieces database
+        const artworks = [
+            {
+                id: 1,
+                title: "Ethereal Dreams",
+                artist: "Sarah Mitchell",
+                description: "An explosion of light and color that captures the magic of dreams and imagination.",
+                price: 2500,
+                icon: "🎨"
+            },
+            {
+                id: 2,
+                title: "Urban Resonance",
+                artist: "Marcus Chen",
+                description: "A vibrant celebration of city life through bold geometric forms and electric colors.",
+                price: 3200,
+                icon: "🏙️"
+            },
+            {
+                id: 3,
+                title: "Whispers of Nature",
+                artist: "Elena Rodriguez",
+                description: "Organic forms dance across the canvas in this joyful meditation on natural beauty.",
+                price: 1800,
+                icon: "🌿"
+            },
+            {
+                id: 4,
+                title: "Golden Hour",
+                artist: "David Park",
+                description: "Warm, radiant hues capture that perfect magical moment when day meets evening.",
+                price: 2900,
+                icon: "🌅"
+            },
+            {
+                id: 5,
+                title: "Cosmic Journey",
+                artist: "Amara Johnson",
+                description: "A mesmerizing voyage through space with bold contrasts and celestial beauty.",
+                price: 4100,
+                icon: "🌌"
+            },
+            {
+                id: 6,
+                title: "Serene Waters",
+                artist: "Maya Thompson",
+                description: "Tranquil blues and soft pastels create a peaceful coastal dreamscape.",
+                price: 2200,
+                icon: "🌊"
+            },
+            {
+                id: 7,
+                title: "Sunset Paradise",
+                artist: "James Wilson",
+                description: "A breathtaking blend of warm sunset colors that evoke tropical bliss.",
+                price: 2750,
+                icon: "🌺"
+            },
+            {
+                id: 8,
+                title: "Cherry Blossom",
+                artist: "Yuki Tanaka",
+                description: "Delicate pink petals dance in this romantic celebration of spring.",
+                price: 3500,
+                icon: "🌸"
+            }
+        ];
+
+        // Shopping cart
+        let cart = JSON.parse(localStorage.getItem('artCart')) || [];
+
+        // Render gallery
+        function renderGallery() {
+            const gallery = document.getElementById('gallery');
+            gallery.innerHTML = artworks.map((art, index) => `
+                <div class="art-card">
+                    <div class="art-image">${art.icon}</div>
+                    <div class="art-info">
+                        <h3 class="art-title">${art.title}</h3>
+                        <p class="artist-name">by ${art.artist}</p>
+                        <p class="art-description">${art.description}</p>
+                        <div class="price-and-btn">
+                            <span class="price">$${art.price.toLocaleString()}</span>
+                            <button class="btn" onclick="addToCart(${art.id})">Add to Cart</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Add to cart
+        function addToCart(artId) {
+            const artwork = artworks.find(a => a.id === artId);
+            const existingItem = cart.find(item => item.id === artId);
+            
+            if (existingItem) {
+                alert('This artwork is already in your cart! 🎨');
+                return;
+            }
+            
+            cart.push(artwork);
+            localStorage.setItem('artCart', JSON.stringify(cart));
+            updateCartCount();
+            
+            // Show feedback
+            const btn = event.target;
+            const originalText = btn.textContent;
+            btn.textContent = '✓ Added!';
+            btn.style.background = 'linear-gradient(135deg, #10b981 0%, #00d2d3 100%)';
+            setTimeout(() => {
+                btn.textContent = originalText;
+                btn.style.background = '';
+            }, 2000);
+        }
+
+        // Remove from cart
+        function removeFromCart(artId) {
+            cart = cart.filter(item => item.id !== artId);
+            localStorage.setItem('artCart', JSON.stringify(cart));
+            updateCartCount();
+            renderCart();
+        }
+
+        // Update cart count
+        function updateCartCount() {
+            document.getElementById('cartCount').textContent = cart.length;
+        }
+
+        // Calculate total
+        function calculateTotal() {
+            return cart.reduce((sum, item) => sum + item.price, 0);
+        }
+
+        // Render cart
+        function renderCart() {
+            const cartContent = document.getElementById('cartContent');
+            
+            if (cart.length === 0) {
+                cartContent.innerHTML = '<div class="empty-cart"><p>Your cart is empty 🛒</p></div>';
+                return;
+            }
+            
+            const total = calculateTotal();
+            
+            cartContent.innerHTML = `
+                <div class="cart-items">
+                    ${cart.map(item => `
+                        <div class="cart-item">
+                            <div class="cart-item-info">
+                                <h4>${item.title}</h4>
+                                <p>by ${item.artist}</p>
+                            </div>
+                            <div style="display: flex; align-items: center;">
+                                <span class="cart-item-price">$${item.price.toLocaleString()}</span>
+                                <button class="remove-item" onclick="removeFromCart(${item.id})">Remove</button>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+                <div class="cart-total">
+                    Total: $${total.toLocaleString()}
+                </div>
+                <button class="checkout-btn" onclick="proceedToCheckout()">
+                    🎉 Proceed to Checkout
+                </button>
+            `;
+        }
+
+        // Open cart modal
+        function openCart() {
+            renderCart();
+            document.getElementById('cartModal').classList.add('active');
+        }
+
+        // Close cart modal
+        function closeCart() {
+            document.getElementById('cartModal').classList.remove('active');
+        }
+
+        // Proceed to checkout
+        function proceedToCheckout() {
+            if (cart.length === 0) {
+                alert('Your cart is empty! 🛒');
+                return;
+            }
+            
+            closeCart();
+            document.getElementById('checkoutModal').classList.add('active');
+            
+            // Mount Stripe card element
+            setTimeout(() => {
+                cardElement.mount('#card-element');
+            }, 100);
+            
+            // Update checkout total
+            const total = calculateTotal();
+            document.getElementById('checkoutTotal').textContent = `Total: $${total.toLocaleString()}`;
+        }
+
+        // Close checkout modal
+        function closeCheckout() {
+            document.getElementById('checkoutModal').classList.remove('active');
+            cardElement.unmount();
+            document.getElementById('payment-form').reset();
+            document.getElementById('paymentSuccess').style.display = 'none';
+            document.getElementById('payment-form').style.display = 'block';
+        }
+
+        // Handle form submission
+        const form = document.getElementById('payment-form');
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            
+            const submitButton = document.getElementById('submitPayment');
+            submitButton.disabled = true;
+            submitButton.innerHTML = '<span class="loading"></span> Processing...';
+            
+            // Get form data
+            const billingDetails = {
+                name: `${document.getElementById('firstName').value} ${document.getElementById('lastName').value}`,
+                email: document.getElementById('email').value,
+                address: {
+                    line1: document.getElementById('address').value,
+                    city: document.getElementById('city').value,
+                    state: document.getElementById('state').value,
+                    postal_code: document.getElementById('zipCode').value,
+                    country: document.getElementById('country').value,
+                }
+            };
+            
+            // Create payment method
+            const {error, paymentMethod} = await stripe.createPaymentMethod({
+                type: 'card',
+                card: cardElement,
+                billing_details: billingDetails,
+            });
+            
+            if (error) {
+                document.getElementById('card-errors').textContent = error.message;
+                submitButton.disabled = false;
+                submitButton.textContent = '🎉 Complete Purchase';
+            } else {
+                simulatePayment(paymentMethod, billingDetails);
+            }
+        });
+
+        // Simulate payment processing
+        function simulatePayment(paymentMethod, billingDetails) {
+            setTimeout(() => {
+                const orderId = 'MG-' + Date.now();
+                
+                // Show success message
+                document.getElementById('payment-form').style.display = 'none';
+                document.getElementById('paymentSuccess').style.display = 'block';
+                document.getElementById('orderId').textContent = orderId;
+                
+                // Clear cart
+                cart = [];
+                localStorage.removeItem('artCart');
+                updateCartCount();
+                
+                console.log('Order completed:', {
+                    orderId,
+                    paymentMethod: paymentMethod.id,
+                    customer: billingDetails,
+                    items: cart,
+                    total: calculateTotal()
+                });
+            }, 2000);
+        }
+
+        // Handle card errors
+        cardElement.on('change', (event) => {
+            const displayError = document.getElementById('card-errors');
+            if (event.error) {
+                displayError.textContent = event.error.message;
+            } else {
+                displayError.textContent = '';
+            }
+        });
+
+        // Smooth scrolling
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Initialize
+        renderGallery();
+        updateCartCount();
+
+        // Add sparkle effect on mouse move
+        document.addEventListener('mousemove', (e) => {
+            if (Math.random() > 0.95) {
+                const sparkle = document.createElement('div');
+                sparkle.className = 'sparkle';
+                sparkle.textContent = '✨';
+                sparkle.style.left = e.pageX + 'px';
+                sparkle.style.top = e.pageY + 'px';
+                sparkle.style.position = 'absolute';
+                sparkle.style.fontSize = Math.random() * 20 + 10 + 'px';
+                document.body.appendChild(sparkle);
+                setTimeout(() => sparkle.remove(), 3000);
+            }
+        });
+    </script>
+</body>
+</html>
